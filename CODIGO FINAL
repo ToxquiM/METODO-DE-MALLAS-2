@@ -1,0 +1,86 @@
+#include <iostream>
+#include <vector>
+#include <iomanip>
+
+// Definición de tipos para mayor claridad en la lectura del código
+using Vector = std::vector<double>;
+using Matrix = std::vector<Vector>;
+
+int main() {
+    double R1, R2, R3, R4, R5, R6;
+    double VS1, VS2, VS3;
+
+    std::cout << "Ingrese el valor de la resistencia(R1) entre los nodos A y B: ";
+    std::cin >> R1;
+    std::cout << "Ingrese el valor de la resistencia entre los nodos(R2) B y E: ";
+    std::cin >> R2;
+    std::cout << "Ingrese el valor de la resistencia entre los nodos(R3) E y G: ";
+    std::cin >> R3;
+    std::cout << "Ingrese el valor de la resistencia entre los nodos(R4) B y C: ";
+    std::cin >> R4;
+    std::cout << "Ingrese el valor de la resistencia entre los nodos(R5) E y F: ";
+    std::cin >> R5;
+    std::cout << "Ingrese el valor de la resistencia entre los nodos(R6) F y H: ";
+    std::cin >> R6;
+
+    std::cout << "Ingrese el valor de la Fuente #1: ";
+    std::cin >> VS1;
+    std::cout << "Ingrese el valor de la Fuente #2: ";
+    std::cin >> VS2;
+    std::cout << "Ingrese el valor de la Fuente #3: ";
+    std::cin >> VS3;
+
+    // Crear la matriz de resistencias de 3x3
+    Matrix matriz_resistencias = {{R1 + R2 + R3, -R2, -R3},
+                                  {-R2, R2 + R4 + R5, -R5},
+                                  {-R3, -R5, R3 + R5 + R6}};
+
+    // Crear el vector de fuentes
+    Vector matriz_fuente = {VS1, VS2, VS3};
+
+    // Imprimir la matriz de resistencias
+    std::cout << "\nMatriz de resistencias:" << std::endl;
+    for (const auto &row : matriz_resistencias) {
+        for (const auto &elem : row) {
+            std::cout << std::setw(6) << elem << "\t";
+        }
+        std::cout << std::endl;
+    }
+
+    // Imprimir el vector de fuentes
+    std::cout << "\nVector de fuentes:" << std::endl;
+    for (const auto &elem : matriz_fuente) {
+        std::cout << std::setw(6) << elem << std::endl;
+    }
+
+    // Calcular la inversa de la matriz de resistencias
+    double det = matriz_resistencias[0][0] * (matriz_resistencias[1][1] * matriz_resistencias[2][2] - matriz_resistencias[1][2] * matriz_resistencias[2][1]) -
+                 matriz_resistencias[0][1] * (matriz_resistencias[1][0] * matriz_resistencias[2][2] - matriz_resistencias[1][2] * matriz_resistencias[2][0]) +
+                 matriz_resistencias[0][2] * (matriz_resistencias[1][0] * matriz_resistencias[2][1] - matriz_resistencias[1][1] * matriz_resistencias[2][0]);
+
+    if (det == 0) {
+        std::cerr << "La matriz no es inversible (determinante igual a cero)." << std::endl;
+        return 1;
+    }
+
+    Vector corrientes_mallas(3);
+    corrientes_mallas[0] = (matriz_fuente[0] * (matriz_resistencias[1][1] * matriz_resistencias[2][2] - matriz_resistencias[1][2] * matriz_resistencias[2][1]) -
+                            matriz_fuente[1] * (matriz_resistencias[0][1] * matriz_resistencias[2][2] - matriz_resistencias[0][2] * matriz_resistencias[2][1]) +
+                            matriz_fuente[2] * (matriz_resistencias[0][1] * matriz_resistencias[1][2] - matriz_resistencias[0][2] * matriz_resistencias[1][1])) / det;
+
+    corrientes_mallas[1] = (matriz_fuente[0] * (matriz_resistencias[1][2] * matriz_resistencias[2][0] - matriz_resistencias[1][0] * matriz_resistencias[2][2]) -
+                            matriz_fuente[1] * (matriz_resistencias[0][2] * matriz_resistencias[2][0] - matriz_resistencias[0][0] * matriz_resistencias[2][2]) +
+                            matriz_fuente[2] * (matriz_resistencias[0][0] * matriz_resistencias[1][2] - matriz_resistencias[0][2] * matriz_resistencias[1][0])) / det;
+
+    corrientes_mallas[2] = (matriz_fuente[0] * (matriz_resistencias[1][0] * matriz_resistencias[2][1] - matriz_resistencias[1][1] * matriz_resistencias[2][0]) -
+                            matriz_fuente[1] * (matriz_resistencias[0][0] * matriz_resistencias[2][1] - matriz_resistencias[0][1] * matriz_resistencias[2][0]) +
+                            matriz_fuente[2] * (matriz_resistencias[0][0] * matriz_resistencias[1][1] - matriz_resistencias[0][1] * matriz_resistencias[1][0])) / det;
+
+    // Imprimir las corrientes en las mallas
+    std::cout << "\nLas corrientes en las mallas son:" << std::endl;
+    std::cout << "I1 -> " << std::setw(6) << corrientes_mallas[0] << std::endl;
+    std::cout << "I2 -> " << std::setw(6) << corrientes_mallas[1] << std::endl;
+    std::cout << "I3 -> " << std::setw(6) << corrientes_mallas[2] << std::endl;
+
+    return 0;
+}
